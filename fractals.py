@@ -15,9 +15,9 @@ from PIL import Image
 
 #%% Internet code
 
-def mandelbrot(n_rows, n_columns, iterations, x = [-1, 1], y = [-1, 1]):
-    x_cor = np.linspace(x[0], x[1], n_rows)
-    y_cor = np.linspace(y[0], y[1], n_columns)
+def mandelbrot(n_rows, n_columns, iterations, x_limit = [-1, 1], y_limit = [-1, 1], print_var = True):
+    x_cor = np.linspace(x_limit[0], x_limit[1], n_rows)
+    y_cor = np.linspace(y_limit[0], y_limit[1], n_columns)
     
     x_len = len(x_cor)
     y_len = len(y_cor)
@@ -31,11 +31,18 @@ def mandelbrot(n_rows, n_columns, iterations, x = [-1, 1], y = [-1, 1]):
                 z = (z * z) + c
                 # z = (z * z * z) + c
                 
+                # z = ((z * z) + c) / np.log((z * z) + c)
+                
+                # z = (z + c) * np.sin(z + c)
+                # z = np.sin(np.log(z + c))
+                
+                
                 count = count + 1
                 if (abs(z) > 4):
                     break
             output[i,j] = count
-        print("{:.2f}% completed".format((i/x_len)*100))
+            # output[i,j] = abs(z) * count
+        if(print_var): print("{:.2f}% completed".format((i/x_len)*100))
             
     return output
 
@@ -76,9 +83,9 @@ def julia(w =  3840, h = 2160, zoom = 4):
     
 #%%
 
-def mandelbrotEvolution(w = 1920, h = 1080, iterations = 256, x = [-1, 1], y = [-1, 1]):
-    x_cor = np.linspace(x[0], x[1], w)
-    y_cor = np.linspace(y[0], y[1], h)
+def mandelbrotEvolution(w = 1920, h = 1080, iterations = 256, x_limit = [-1, 1], y_limit = [-1, 1]):
+    x_cor = np.linspace(x_limit[0], x_limit[1], w)
+    y_cor = np.linspace(y_limit[0], y_limit[1], h)
     
     x_len = len(x_cor)
     y_len = len(y_cor)
@@ -102,7 +109,9 @@ def mandelbrotEvolution(w = 1920, h = 1080, iterations = 256, x = [-1, 1], y = [
                 
                 # New value of z
                 c = complex(x_cor[i],y_cor[j])
-                z = (z * z) + c
+                # z = (z * z) + c
+                # z = ((z * z) + c) / np.log((z * z) + c)
+                z = (z + c) * np.sin(z + c) * np.log((z * z) + c)
                 
                 # Save real and imaginary part
                 real_parts[i, j] = z.real
@@ -117,6 +126,23 @@ def mandelbrotEvolution(w = 1920, h = 1080, iterations = 256, x = [-1, 1], y = [
             
     return list_of_outputs
 
+def saveSingleMatrix(matrix, path = '', name = 'fractal', w = 1920, h = 1080):
+        
+    bitmap = Image.new("RGB", (w, h), "white")
+    
+    pix = bitmap.load() 
+    
+    max_value = np.max(matrix)
+    step = 255/max_value
+    
+    # Convert the matrix in PIL image
+    for i in range(w):
+        for j in range(h):
+            pix[i,j] = (int(matrix[i, j]) << 21) + (int(matrix[i, j]) << 10) + int(matrix[i, j])*8
+            # pix[i, j] = (0, 0, 255 - int(matrix[i, j] * step))
+                        
+    # Save the matrix
+    bitmap.save(path + name + ".png", format = 'png')
 
 def saveListOfMatrix(list_of_matrix, path, w = 1920, h = 1080):
     for n in range(len(list_of_matrix)):
@@ -126,12 +152,51 @@ def saveListOfMatrix(list_of_matrix, path, w = 1920, h = 1080):
         
         pix = bitmap.load() 
         
+        max_value = len(list_of_matrix)
+        step = 255/max_value
+        
         # Convert the matrix in PIL image
         for i in range(w):
             for j in range(h):
                 pix[i,j] = (int(matrix[i, j]) << 21) + (int(matrix[i, j]) << 10) + int(matrix[i, j])*8
+                # pix[i, j] = (int(matrix[i, j] * step), 0, 0)
                 
-        print("{:.2f}% completed".format(n))
+        print("{:.2f}% completed".format(n/len(list_of_matrix) * 100))
                 
         # Save the matrix
         bitmap.save(path + str(n) + ".png", format = 'png')   
+        
+        
+#%% 
+
+
+def mandelbrotZoom(x_zoom_limit, y_zoom_limit, x_start_limit = [-1, 1], y_start_limit = [-1, 1], w = 1920, h = 1080, iterations = 256, n_zoom = 200):
+    
+    ratio = w/h
+    ratio = (abs(x_start_limit[0] - x_start_limit[1]))/(abs(y_start_limit[0] - y_start_limit[1]))
+    
+    list_of_outputs = []
+    
+    x_limit = x_start_limit
+    y_limit = y_start_limit
+    
+    x_tick_left = abs(x_start_limit[0] - x_zoom_limit[0])/n_zoom
+    x_tick_right = abs(x_start_limit[1] - x_zoom_limit[1])/n_zoom
+    
+    y_tick_down = abs(y_start_limit[0] - y_zoom_limit[0])/n_zoom
+    y_tick_up = abs(y_start_limit[1] - y_zoom_limit[1])/n_zoom
+    
+    for i in range(n_zoom):
+        output = mandelbrot(w, h, iterations, x_limit, y_limit)
+        list_of_outputs.append(output)
+        
+        x_limit = [x_limit[0] - x_tick_left, x_limit[1] - x_tick_right]
+        y_limit = [y_limit[0] - y_tick_down, y_limit[1] - y_tick_up]
+        
+        print("\t{}".format(i))
+        
+    return list_of_outputs
+        
+        
+        
+        
