@@ -7,7 +7,7 @@ Created on Thu Mar  4 09:19:31 2021
 
 """
 
-from fractals import mandelbrot, mandelbrotEvolution, saveListOfMatrix, saveSingleMatrix, mandelbrotZoom
+from fractals import mandelbrot, mandelbrotTorch, mandelbrotEvolution, saveListOfMatrix, saveSingleMatrix, mandelbrotZoom
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
