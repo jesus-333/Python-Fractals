@@ -1,14 +1,16 @@
+import sys
+sys.path.insert(1, 'support/')
+
+#%%
 import cv2
 import numpy as np
 import time
 import torch
 import matplotlib.pyplot as plt
 
-from fractals import mandelbrot, mandelbrotTorch, showMandlbrot
-
-#%%
-
-# def setLimits(event,x,y,flags,param):
+from support.fractalsPython import mandelbrot
+from support.fractalsPyTorch import mandelbrotTorch
+from support.supportFunction import showMandlbrot
     
 #%%
 
@@ -58,7 +60,26 @@ y_limit = [0.75j, 0.85j]
 img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output)
 showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
 
-
 # cmpa_vector = ['flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern','gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'gist_rainbow', 'rainbow', 'jet', 'turbo', 'nipy_spectral', 'gist_ncar']
 # for cmap in cmpa_vector:
 #     showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = cmap)
+
+
+#%% Test OpenCV with trackbar
+
+slider_max = 1
+title_window = 'title_window'
+img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output)
+
+def on_trackbar(val):
+    x = val / slider_max
+    print(x, val)
+    cv2.imshow(title_window, img.T.numpy())
+
+cv2.namedWindow(title_window)
+trackbar_name = 'X x %d' % slider_max
+cv2.createTrackbar(trackbar_name, title_window , 0, slider_max, on_trackbar)
+# Show some stuff
+on_trackbar(0)
+# Wait until user press some key
+cv2.waitKey()

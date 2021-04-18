@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  4 09:19:31 2021
+import sys
+sys.path.insert(1, 'support/')
 
-@author: Alberto Zancanaro (Jesus)
-@organization: University of Padua (Italy)
+#%%
 
-"""
-
-from fractals import mandelbrot, mandelbrotTorch, mandelbrotEvolution, saveListOfMatrix, saveSingleMatrix, mandelbrotZoom
+from support.fractalsPython import mandelbrot, mandelbrotEvolution, saveListOfMatrix, saveSingleMatrix, mandelbrotZoom
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt

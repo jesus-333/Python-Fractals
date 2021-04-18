@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  4 09:19:31 2021
-
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
+
+Calculate fractals with numpy and standard python operation
+
 
 """
 
@@ -14,94 +15,6 @@ import matplotlib.pyplot as plt
 import torch
 from PIL import Image 
 
-#%% Internet code
-
-def mandelbrot(n_rows, n_columns, iterations, x_limit = [-1, 1], y_limit = [-1, 1], print_var = True):
-    x_cor = np.linspace(x_limit[0], x_limit[1], n_rows)
-    y_cor = np.linspace(y_limit[0], y_limit[1], n_columns)
-    
-    x_len = len(x_cor)
-    y_len = len(y_cor)
-    output = np.zeros((x_len,y_len))
-    for i in range(x_len):
-        for j in range(y_len):
-            c = complex(x_cor[i],y_cor[j])
-            z = complex(0, 0)
-            count = 0
-            for k in range(iterations):
-                z = (z * z) + c
-                # z = (z * z * z) + c
-                
-                # z = ((z * z) + c) / np.log((z * z) + c)
-                
-                # z = (z + c) * np.sin(z + c)
-                # z = np.sin(np.log(z + c))
-                
-                
-                count = count + 1
-                if (abs(z) > 4):
-                    break
-            output[i,j] = count
-            # output[i,j] = abs(z) * count
-        if(print_var): print("{:.2f}% completed".format((i/x_len)*100))
-            
-    return output
-
-
-def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True):
-    x_cor = torch.linspace(x_limit[0], x_limit[1], width_res, dtype=torch.cfloat)
-    y_cor = torch.linspace(y_limit[0], y_limit[1], height_res, dtype=torch.cfloat)
-    
-    x_len = len(x_cor)
-    y_len = len(y_cor)
-    output = torch.zeros((x_len,y_len)).to(device)
-    z = torch.zeros((x_len,y_len), dtype=torch.cfloat).to(device)
-    c = torch.zeros((x_len,y_len), dtype=torch.cfloat).to(device)
-   
-    for i in range(x_len):
-        c[i] = x_cor[i] + y_cor
-
-    for k in range(iterations):
-        z = (z * z) + c
-        
-        output[torch.abs(z) < 3] += 1
-        
-    return output.to('cpu')
-
-def julia(w =  3840, h = 2160, zoom = 4):
-    # setting the width, height and zoom of the image to be created 
-    # w, h, zoom =  3840, 2160, 4
-   
-    # creating the new image in RGB mode 
-    bitmap = Image.new("RGB", (w, h), "white") 
-  
-    # Allocating the storage for the image and loading the pixel data. 
-    pix = bitmap.load() 
-     
-    # setting up the variables according to the equation to  create the fractal 
-    cX, cY = -0.7, 0.27015
-    moveX, moveY = 0.0, 0.0
-    maxIter = 255
-   
-    for x in range(w): 
-        for y in range(h): 
-            zx = 1.5*(x - w/2.5)/(0.5*zoom*w) + moveX 
-            zy = 1.53*(y - h/2)/(0.8*zoom*h) + moveY 
-            i = maxIter 
-            while zx*zx + zy*zy < 4 and i > 1: 
-                tmp = zx*zx - zy*zy + cX 
-                zy,zx = 2.0*zx*zy + cY, tmp 
-                i -= 1
-  
-            # convert byte to RGB (3 bytes), kinda magic to get nice colors 
-            pix[x,y] = (i << 21) + (i << 10) + i*8
-        
-        print("{:.2f}% completed".format((x/w)*100))
-  
-    # to display the created fractal 
-    bitmap.show() 
-    
-    
 #%%
 
 def mandelbrotEvolution(w = 1920, h = 1080, iterations = 256, x_limit = [-1, 1], y_limit = [-1, 1]):
@@ -190,7 +103,6 @@ def saveListOfMatrix(list_of_matrix, path, w = 1920, h = 1080):
         
 #%% 
 
-
 def mandelbrotZoom(x_zoom_limit, y_zoom_limit, x_start_limit = [-1, 1], y_start_limit = [-1, 1], w = 1920, h = 1080, iterations = 256, n_zoom = 200):
     
     ratio = w/h
@@ -227,4 +139,72 @@ def showMandlbrot(mandlbrot, x, y, w, h, cmap = "hot"):
     plt.xticks([0, w/2, w], labels = [x[0], np.mean(x), x[1]])
     plt.yticks([0, h/2, h], labels = [y[0], np.mean(y), y[1]])
 
+#%% Internet code (usa as stra)
+
+def mandelbrot(n_rows, n_columns, iterations, x_limit = [-1, 1], y_limit = [-1, 1], print_var = True):
+    x_cor = np.linspace(x_limit[0], x_limit[1], n_rows)
+    y_cor = np.linspace(y_limit[0], y_limit[1], n_columns)
+    
+    x_len = len(x_cor)
+    y_len = len(y_cor)
+    output = np.zeros((x_len,y_len))
+    for i in range(x_len):
+        for j in range(y_len):
+            c = complex(x_cor[i],y_cor[j])
+            z = complex(0, 0)
+            count = 0
+            for k in range(iterations):
+                z = (z * z) + c
+                # z = (z * z * z) + c
+                
+                # z = ((z * z) + c) / np.log((z * z) + c)
+                
+                # z = (z + c) * np.sin(z + c)
+                # z = np.sin(np.log(z + c))
+                
+                
+                count = count + 1
+                if (abs(z) > 4):
+                    break
+            output[i,j] = count
+            # output[i,j] = abs(z) * count
+        if(print_var): print("{:.2f}% completed".format((i/x_len)*100))
+            
+    return output
+
+
+def julia(w =  3840, h = 2160, zoom = 4):
+    # setting the width, height and zoom of the image to be created 
+    # w, h, zoom =  3840, 2160, 4
+   
+    # creating the new image in RGB mode 
+    bitmap = Image.new("RGB", (w, h), "white") 
+  
+    # Allocating the storage for the image and loading the pixel data. 
+    pix = bitmap.load() 
+     
+    # setting up the variables according to the equation to  create the fractal 
+    cX, cY = -0.7, 0.27015
+    moveX, moveY = 0.0, 0.0
+    maxIter = 255
+   
+    for x in range(w): 
+        for y in range(h): 
+            zx = 1.5*(x - w/2.5)/(0.5*zoom*w) + moveX 
+            zy = 1.53*(y - h/2)/(0.8*zoom*h) + moveY 
+            i = maxIter 
+            while zx*zx + zy*zy < 4 and i > 1: 
+                tmp = zx*zx - zy*zy + cX 
+                zy,zx = 2.0*zx*zy + cY, tmp 
+                i -= 1
+  
+            # convert byte to RGB (3 bytes), kinda magic to get nice colors 
+            pix[x,y] = (i << 21) + (i << 10) + i*8
+        
+        print("{:.2f}% completed".format((x/w)*100))
+  
+    # to display the created fractal 
+    bitmap.show() 
+    
+    
         
