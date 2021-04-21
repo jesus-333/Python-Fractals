@@ -80,7 +80,28 @@ def showMandlbrot(mandlbrot, x, y, w, h, figsize = (20, 15), cmap = "hot"):
 
 #%%
 
-def rescale(x, a = 0, b = 1):
-    x = (x - torch.min(x))/ (torch.max(x) - torch.min(x))
+def rescaleTorch(x, a = 0, b = 1):
+    x = ((x - torch.min(x)) / (torch.max(x) - torch.min(x))) * (b - a) + a
     return x
         
+def rescaleNumpy(x, a = 0, b = 1):
+    x = ((x - np.min(x)) / (np.max(x) - np.min(x))) * (b - a) + a
+    return x
+
+def createLogspacedVector(start, stop, n_elements, reverse_order = False):
+    span = abs(stop - start)
+    
+    x = np.geomspace(1, span + 1, n_elements)
+    x = rescaleNumpy(x, start, stop)
+    
+    if(reverse_order):
+        # direction = start - stop
+        reverse_x = [stop]
+        for i in range(len(x) - 1):
+            diff = x[i] - x[i + 1]
+            print(x[i], diff)
+            reverse_x.append(reverse_x[i] + diff)
+        return np.asarray(reverse_x)[::-1]
+    else:
+        return x
+    

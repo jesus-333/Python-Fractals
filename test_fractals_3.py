@@ -13,7 +13,8 @@ from PIL import Image
 
 from support.fractalsPython import mandelbrot
 from support.fractalsPyTorch import mandelbrotTorch, mandelbrotZoomTorch
-from support.supportFunction import showMandlbrot, saveSingleMatrix, saveListOfMatrix, saveListOfMatrixV2, saveListOfMatrixV3, rescale
+from support.supportFunction import showMandlbrot, saveSingleMatrix, saveListOfMatrix, saveListOfMatrixV2, saveListOfMatrixV3
+from support.supportFunction import rescaleTorch, rescaleNumpy
     
 #%%
 
@@ -52,17 +53,17 @@ showMandlbrot(img_3, x_limit, y_limit, w, h)
 
 
 #%%
-scaled_output = True
+scaled_output = False
 w = 1920
 h = 1080
-iterations = 200
+iterations = 255
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
 
-x_limit = [-0.2240625, -0.224]
-y_limit = [0.77752j, 0.77758j]
+x_limit = [-0.22365, -0.223625]
+y_limit = [0.777535j, 0.77755j]
 
 # x_limit = [0.2, 0.6]
 # y_limit = [-0.6j, 0j]
@@ -98,8 +99,8 @@ print("Total exection time: {}s (Pytorch {})(Res: {}x{})".format(t_end - t_start
 
 w = 1920
 h = 1080 
-iterations = 100
-n_zoom = 300
+iterations = 200
+n_zoom = 400
 
 x = [-1, 1]
 y = [-1j, 1j]
@@ -107,23 +108,23 @@ y = [-1j, 1j]
 # x_end = [1.01, 1.09]
 # y_end = [0.80j, 0.88j]
 
-x_end = [-0.2240625, -0.224]
-y_end = [0.77752j, 0.77758j]
+x_end = [-0.22365, -0.223625]
+y_end = [0.777535j, 0.77755j]
 
 t_start = time.time()
-list_of_outputs = mandelbrotZoomTorch(x_end, y_end, device = device, w = w, h = h, iterations = iterations, x_start_limit = x, y_start_limit = y, n_zoom = n_zoom)
+mandelbrotZoomTorch(x_end, y_end, device = device, w = w, h = h, iterations = iterations, x_start_limit = x, y_start_limit = y, n_zoom = n_zoom)
 t_end = time.time()
 print("Total exection time: {}s (Pytorch {})".format(t_end - t_start, device.type))
 
 # saveListOfMatrix(list_of_outputs, path = 'img_zoom/', w = w, h = h)
 # saveListOfMatrixV2(list_of_outputs, path = 'img_zoom/')
-saveListOfMatrixV3(list_of_outputs, path = 'img_zoom/', cmap = 'hot')
+# saveListOfMatrixV3(list_of_outputs, path = 'img_zoom/', cmap = 'hot')
 
 # choose codec according to format needed
 fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
 video=cv2.VideoWriter('video_zoom.avi', fourcc, 10, (w, h))
 
-for j in range(len(list_of_outputs)):
+for j in range(n_zoom):
     img = cv2.imread('img_zoom/' + str(j) +'.png')
     video.write(img)
 

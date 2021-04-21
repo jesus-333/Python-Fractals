@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import torch
 from PIL import Image 
 
+from supportFunction import createLogspacedVector
+
 #%%
 
 def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True):
@@ -64,15 +66,27 @@ def mandelbrotZoomTorch(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-1,
     y_tick_down = (y_start_limit[0] - y_zoom_limit[0])/n_zoom
     y_tick_up = (y_start_limit[1] - y_zoom_limit[1])/n_zoom
     
-    x_tick_left_vector = np.geomspace(x_start_limit[0], x_zoom_limit[0], n_zoom)
-    x_tick_right_vector = np.geomspace(x_start_limit[1], x_zoom_limit[1], n_zoom)
-    y_tick_down_vector = np.geomspace(y_start_limit[0], y_zoom_limit[0], n_zoom)
-    y_tick_up_vector = np.geomspace(y_start_limit[1], y_zoom_limit[1], n_zoom)
+    reverse_order = True
+    # x_tick_left_vector  = createLogspacedVector(x_start_limit[0], x_zoom_limit[0], n_zoom, reverse_order = reverse_order)
+    # x_tick_right_vector = createLogspacedVector(x_start_limit[1], x_zoom_limit[1], n_zoom, reverse_order = reverse_order)
+    # y_tick_down_vector  = createLogspacedVector(y_start_limit[0], y_zoom_limit[0], n_zoom, reverse_order = reverse_order)
+    # y_tick_up_vector    = createLogspacedVector(y_start_limit[1], y_zoom_limit[1], n_zoom, reverse_order = reverse_order)
+    x_tick_left_vector  = np.linspace(x_start_limit[0], x_zoom_limit[0], n_zoom)
+    x_tick_right_vector = np.linspace(x_start_limit[1], x_zoom_limit[1], n_zoom)
+    y_tick_down_vector  = np.linspace(y_start_limit[0], y_zoom_limit[0], n_zoom)
+    y_tick_up_vector    = np.linspace(y_start_limit[1], y_zoom_limit[1], n_zoom)
     
+    
+    # print(x_start_limit)
+    # print(x_zoom_limit)
+    # print(y_start_limit)
+    # print(y_zoom_limit)
+    # print(y_tick_up_vector)
     
     for i in range(n_zoom):
         output = mandelbrotTorch(w, h, iterations, device, x_limit, y_limit)
-        list_of_outputs.append(output.T.numpy())
+        # list_of_outputs.append(output.T.numpy())
+        plt.imsave("img_zoom/{}.png".format(i), output.T, cmap = 'hot')
         
         # x_limit = [x_limit[0] - x_tick_left, x_limit[1] - x_tick_right]
         # y_limit = [y_limit[0] - y_tick_down, y_limit[1] - y_tick_up]
@@ -82,4 +96,4 @@ def mandelbrotZoomTorch(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-1,
         # print(x_limit, y_limit)
         print("\t{}".format(i))
     
-    return list_of_outputs
+    # return list_of_outputs
