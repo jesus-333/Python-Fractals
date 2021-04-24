@@ -54,6 +54,8 @@ showMandlbrot(img_3, x_limit, y_limit, w, h)
 
 #%%
 scaled_output = False
+tensor_type = torch.cfloat
+
 w = 1920
 h = 1080
 iterations = 255
@@ -62,14 +64,14 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
 
-x_limit = [-0.22365, -0.223625]
-y_limit = [0.777535j, 0.77755j]
+# x_limit = [-0.2236307, -0.2236308]
+# y_limit = [0.77753765j, 0.77753749j]
 
 # x_limit = [0.2, 0.6]
 # y_limit = [-0.6j, 0j]
 
 t_start = time.time()
-img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output)
+img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
 showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
 # showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'gist_rainbow')
 t_end = time.time()
@@ -100,7 +102,7 @@ print("Total exection time: {}s (Pytorch {})(Res: {}x{})".format(t_end - t_start
 w = 1920
 h = 1080 
 iterations = 200
-n_zoom = 400
+n_zoom = 300
 
 x = [-1, 1]
 y = [-1j, 1j]
@@ -108,8 +110,10 @@ y = [-1j, 1j]
 # x_end = [1.01, 1.09]
 # y_end = [0.80j, 0.88j]
 
-x_end = [-0.22365, -0.223625]
-y_end = [0.777535j, 0.77755j]
+# x_end = [-0.22365, -0.223625]
+# y_end = [0.777535j, 0.77755j]
+x_end = [-0.2236307, -0.2236308]
+y_end = [0.77753765j, 0.77753749j]
 
 t_start = time.time()
 mandelbrotZoomTorch(x_end, y_end, device = device, w = w, h = h, iterations = iterations, x_start_limit = x, y_start_limit = y, n_zoom = n_zoom)
