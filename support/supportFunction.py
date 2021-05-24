@@ -12,6 +12,7 @@ Support function used to save, plot etc
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import math
 from PIL import Image 
         
 #%%
@@ -104,4 +105,24 @@ def createLogspacedVector(start, stop, n_elements, reverse_order = False):
         return np.asarray(reverse_x)[::-1]
     else:
         return x
+
+def createZoomVector(start, stop, magnitude_step):
+    span = abs(stop - start)
     
+    x = np.zeros(0)
+    
+    tmp_start = 1
+    for i in range(magnitude_step):
+        if(i < 3): n_zoom = 50
+        else: n_zoom = 100
+        
+        tmp_x = np.linspace(1, span + 1, 50)
+        tmp_x_order = np.floor(np.log10(np.abs(tmp_x)))
+        tmp_x = tmp_x[tmp_x_order < i]
+        
+        tmp_start = tmp_x.max()
+        
+        x = np.concatenate([x, tmp_x])
+    
+    x = rescaleNumpy(x, start, stop) 
+    return x

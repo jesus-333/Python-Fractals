@@ -12,7 +12,7 @@ import matplotlib
 from PIL import Image
 
 from support.fractalsPython import mandelbrot
-from support.fractalsPyTorch import mandelbrotTorch, mandelbrotZoomTorch
+from support.fractalsPyTorch import mandelbrotTorch, mandelbrotZoomTorch, mandelbrotZoomTorchV2
 from support.supportFunction import showMandlbrot, saveSingleMatrix, saveListOfMatrix, saveListOfMatrixV2, saveListOfMatrixV3
 from support.supportFunction import rescaleTorch, rescaleNumpy
     
@@ -54,7 +54,7 @@ showMandlbrot(img_3, x_limit, y_limit, w, h)
 
 #%%
 scaled_output = False
-tensor_type = torch.cfloat
+tensor_type = torch.cdouble
 
 w = 1920
 h = 1080
@@ -64,8 +64,8 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
 
-# x_limit = [-0.2236307, -0.2236308]
-# y_limit = [0.77753765j, 0.77753749j]
+x_limit = [-0.2236307, -0.2236308]
+y_limit = [0.77753765j, 0.77753749j]
 
 # x_limit = [0.2, 0.6]
 # y_limit = [-0.6j, 0j]
@@ -102,7 +102,8 @@ print("Total exection time: {}s (Pytorch {})(Res: {}x{})".format(t_end - t_start
 w = 1920
 h = 1080 
 iterations = 200
-n_zoom = 300
+n_zoom = 200
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 x = [-1, 1]
 y = [-1j, 1j]

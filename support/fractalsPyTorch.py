@@ -12,6 +12,7 @@ Calculate fractals with PyTorch and tensor
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 import torch
 from PIL import Image 
 
@@ -98,16 +99,33 @@ def mandelbrotZoomTorch(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-1,
     
     
 def mandelbrotZoomTorchV2(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-1, 1], y_start_limit = [-1, 1], w = 1920, h = 1080, iterations = 256, n_zoom = 200):
+    
+    list_of_outputs = []
+    
+    magnitude_start = math.floor(math.log10(abs(x_start_limit[0] - x_start_limit[1])))
+    magnitude_end   = math.floor(math.log10(abs(x_zoom_limit[0] - x_zoom_limit[1])))
+    difference_in_magnitude = magnitude_start - magnitude_end
+    
+    reverse_order = True
+    x_tick_left_vector  = np.linspace(x_start_limit[0], x_zoom_limit[0], n_zoom * difference_in_magnitude)
+    x_tick_right_vector = np.linspace(x_start_limit[1], x_zoom_limit[1], n_zoom * difference_in_magnitude)
+    y_tick_down_vector  = np.linspace(y_start_limit[0], y_zoom_limit[0], n_zoom * difference_in_magnitude)
+    y_tick_up_vector    = np.linspace(y_start_limit[1], y_zoom_limit[1], n_zoom * difference_in_magnitude)
         
     x_limit = x_start_limit
     y_limit = y_start_limit
     
-    reverse_order = True
-    # x_tick_left_vector  = createLogspacedVector(x_start_limit[0], x_zoom_limit[0], n_zoom, reverse_order = reverse_order)
-    # x_tick_right_vector = createLogspacedVector(x_start_limit[1], x_zoom_limit[1], n_zoom, reverse_order = reverse_order)
-    # y_tick_down_vector  = createLogspacedVector(y_start_limit[0], y_zoom_limit[0], n_zoom, reverse_order = reverse_order)
-    # y_tick_up_vector    = createLogspacedVector(y_start_limit[1], y_zoom_limit[1], n_zoom, reverse_order = reverse_order)
-    x_tick_left_vector  = np.linspace(x_start_limit[0], x_zoom_limit[0], n_zoom)
-    x_tick_right_vector = np.linspace(x_start_limit[1], x_zoom_limit[1], n_zoom)
-    y_tick_down_vector  = np.linspace(y_start_limit[0], y_zoom_limit[0], n_zoom)
-    y_tick_up_vector    = np.linspace(y_start_limit[1], y_zoom_limit[1], n_zoom)
+    for i in range(len(x_tick_left_vector)):
+        output = mandelbrotTorch(w, h, iterations, device, x_limit, y_limit, tensor_type=torch.cdouble)
+        # list_of_outputs.append(output.T.numpy())
+        plt.imsave("img_zoom/{}.png".format(i), output.T, cmap = 'hot')
+        
+        # x_limit = [x_limit[0] - x_tick_left, x_limit[1] - x_tick_right]
+        # y_limit = [y_limit[0] - y_tick_down, y_limit[1] - y_tick_up]
+        x_limit = [x_tick_left_vector[i], x_tick_right_vector[i]]
+        y_limit = [y_tick_down_vector[i], y_tick_up_vector[i]]
+        
+        # print(x_limit, y_limit)
+        print("\t{}".format(round((i/len(x_tick_left_vector)) * 100, 2)))
+    
+    # return list_of_outputs
