@@ -16,11 +16,11 @@ import math
 import torch
 from PIL import Image 
 
-from supportFunction import createLogspacedVector
+from supportFunction import createLogspacedVector, rescaleTorch
 
 #%%
 
-def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True, tensor_type = torch.cfloat):
+def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True, tensor_type = torch.cfloat, fix_c = -1):
     if(scaled_output): tensor_type = torch.cfloat
     
     x_cor = torch.linspace(x_limit[0], x_limit[1], width_res, dtype = tensor_type)
@@ -29,14 +29,20 @@ def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1]
     x_len = len(x_cor)
     y_len = len(y_cor)
     output = torch.zeros((x_len,y_len)).to(device)
-    z = torch.zeros((x_len,y_len), dtype = tensor_type).to(device)
-    c = torch.zeros((x_len,y_len), dtype = tensor_type).to(device)
+    z = torch.zeros((x_len, y_len), dtype = tensor_type).to(device)
+    c = torch.zeros((x_len, y_len), dtype = tensor_type).to(device)
     threshold = 4
-   
-    with torch.no_grad():
-        for i in range(x_len):
-            c[i] = x_cor[i] + y_cor
     
+
+    with torch.no_grad():
+        
+        for i in range(x_len):
+            z[i] = x_cor[i] + y_cor
+            if(fix_c == -1):
+                c[i] = x_cor[i] + y_cor
+            else:
+                c[i] = fix_c
+        
         for k in range(iterations):
             z = (z * z) + c
             
@@ -48,10 +54,10 @@ def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1]
                 output[torch.abs(z) < threshold] = output[torch.abs(z) < threshold] * torch.abs(z[torch.abs(z) < threshold])
                 
     
-    # if(scaled_output): 
-    #     output[torch.abs(z) < threshold] = output[torch.abs(z) < threshold] * torch.abs(z[torch.abs(z) < threshold])
+    if(scaled_output):
+        output = rescaleTorch(output)
         
-    return output.to('cpu')
+    return output.to('cpu').T
 
 
 #%%
@@ -129,3 +135,37 @@ def mandelbrotZoomTorchV2(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-
         print("\t{}".format(round((i/len(x_tick_left_vector)) * 100, 2)))
     
     # return list_of_outputs
+    
+    
+#%%
+
+
+
+def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True, tensor_type = torch.cfloat, cmap = 'hot'):
+    ix, iy = 0, 0
+    def setCoordinate(event, x, y, flags, param):
+        nonlocal ix, iy
+        ix, iy = x, y
+    
+    cv2.namedWindow('Fractal')
+    cv2.setMouseCallback('Fractal', setCoordinate)
+        
+    real_c = np.linspace(x_limit[0], x_limit[1], w)
+    imag_c = np.linspace(y_limit[0], y_limit[1], h)
+    
+    while(True):
+        fix_c = complex(real_c[ix], imag_c[iy])
+        img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type, fix_c = fix_c)
+        
+        plt.imsave("tmp.png", img, cmap = cmap)
+        img_plot = cv2.imread("tmp.png")
+        
+        cv2.imshow("Fractal", img_plot)
+        
+        
+        if cv2.waitKey(1) == ord('q'):
+            cv2.destroyAllWindows()
+            break
+        
+    return img
+        

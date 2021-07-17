@@ -1,7 +1,6 @@
 import sys
 sys.path.insert(0, 'support/')
 
-#%%
 import cv2
 import numpy as np
 import time
@@ -12,9 +11,11 @@ import matplotlib
 from PIL import Image
 
 from support.fractalsPython import mandelbrot
-from support.fractalsPyTorch import mandelbrotTorch, mandelbrotZoomTorch, mandelbrotZoomTorchV2
+from support.fractalsPyTorch import mandelbrotTorch, mandelbrotZoomTorch, mandelbrotZoomTorchV2, evolvingFractal
 from support.supportFunction import showMandlbrot, saveSingleMatrix, saveListOfMatrix, saveListOfMatrixV2, saveListOfMatrixV3
 from support.supportFunction import rescaleTorch, rescaleNumpy
+from support.supportFunction import showMandlbrotOpenCV
+
     
 #%%
 
@@ -64,15 +65,15 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
 
-x_limit = [-0.2236307, -0.2236308]
-y_limit = [0.77753765j, 0.77753749j]
+# x_limit = [-0.2236307, -0.2236308]
+# y_limit = [0.77753765j, 0.77753749j]
 
 # x_limit = [0.2, 0.6]
 # y_limit = [-0.6j, 0j]
 
 t_start = time.time()
 img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
-showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
+showMandlbrot(img, x_limit, y_limit, w, h, cmap = 'hot')
 # showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'gist_rainbow')
 t_end = time.time()
 print("Total exection time: {}s (Pytorch {})(Res: {}x{})".format(t_end - t_start, device.type, w, h))
@@ -139,20 +140,19 @@ video.release()
 
 
 #%% Test OpenCV with trackbar
+from support.fractalsPyTorch import evolvingFractal
 
-# slider_max = 1
-# title_window = 'title_window'
-# img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output)
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+tensor_type = torch.cdouble
 
-# def on_trackbar(val):
-#     x = val / slider_max
-#     print(x, val)
-#     cv2.imshow(title_window, img.T.numpy())
+x_limit = [-1, 1]
+y_limit = [-1j, 1j]
+w = 800
+h = 400
+iterations = 255
+scaled_output = False
 
-# cv2.namedWindow(title_window)
-# trackbar_name = 'X x %d' % slider_max
-# cv2.createTrackbar(trackbar_name, title_window , 0, slider_max, on_trackbar)
-# # Show some stuff
-# on_trackbar(0)
-# # Wait until user press some key
-# cv2.waitKey()
+# img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
+# showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
+# showMandlbrotOpenCV(img.T)
+a = evolvingFractal(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)

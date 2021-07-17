@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import torch
 import math
 from PIL import Image 
+
+import cv2
         
 #%%
 
@@ -71,13 +73,28 @@ def saveListOfMatrixV3(list_of_matrix, path, cmap = 'hot'):
         img = list_of_matrix[i]
         plt.imsave(path + "{}.png".format(i), img, cmap = cmap)
         print("{:.2f}% completed".format(i/len(list_of_matrix) * 100))
-    
-
+        
 def showMandlbrot(mandlbrot, x, y, w, h, figsize = (20, 15), cmap = "hot"):
     plt.figure(figsize = figsize)
     plt.imshow(mandlbrot, cmap = cmap)
     plt.xticks([0, w/2, w], labels = [x[0], np.mean(x), x[1]])
     plt.yticks([0, h/2, h], labels = [y[0], np.mean(y), y[1]])
+    
+    
+def showMandlbrotOpenCV(mandlbrot, cmap = 'hot'):
+    plt.imsave("tmp.png", mandlbrot, cmap = cmap)
+    
+    img = cv2.imread("tmp.png")
+    
+    cv2.namedWindow('Fractal')
+    
+    while(True):
+        cv2.imshow("Fractal", img)
+        
+        if cv2.waitKey(1) == ord('q'):
+            cv2.destroyAllWindows()
+            break
+        
 
 #%%
 
