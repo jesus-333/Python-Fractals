@@ -57,9 +57,9 @@ showMandlbrot(img_3, x_limit, y_limit, w, h)
 scaled_output = False
 tensor_type = torch.cdouble
 
-w = 1920
-h = 1080
-iterations = 255
+w = 1600
+h = 900
+iterations = 50
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 x_limit = [-1, 1]
@@ -143,16 +143,16 @@ video.release()
 from support.fractalsPyTorch import evolvingFractal
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-tensor_type = torch.cdouble
 
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
-w = 800
-h = 400
-iterations = 255
+w = 1280
+h = 720
+iterations = 50
 scaled_output = False
+cmap = 'twilight_shifted'
 
 # img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
 # showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
 # showMandlbrotOpenCV(img.T)
-a = evolvingFractal(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
+a = evolvingFractal(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, cmap = cmap)

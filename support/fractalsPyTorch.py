@@ -35,25 +35,24 @@ def mandelbrotTorch(width_res, height_res, iterations, device, x_limit = [-1, 1]
     
 
     with torch.no_grad():
-        
+       
         for i in range(x_len):
             z[i] = x_cor[i] + y_cor
             if(fix_c == -1):
                 c[i] = x_cor[i] + y_cor
             else:
                 c[i] = fix_c
-        
-        for k in range(iterations):
-            z = (z * z) + c
+                
+        for k in range(iterations):            
+            if(scaled_output): 
+                tmp_index = torch.abs(z) < threshold
+                z[tmp_index] = (z[tmp_index] * z[tmp_index]) + c[tmp_index]
+            else:
+                z = (z * z) + c
             
-            # z = (z * z * torch.sin(z)) + (c * torch.log(c)) 
-            
+            if(scaled_output): output[torch.abs(z) < threshold] = output[torch.abs(z) < threshold] * torch.abs(z[torch.abs(z) < threshold])
             output[torch.abs(z) < threshold] += 1
             
-            if(scaled_output): 
-                output[torch.abs(z) < threshold] = output[torch.abs(z) < threshold] * torch.abs(z[torch.abs(z) < threshold])
-                
-    
     if(scaled_output):
         output = rescaleTorch(output)
         
@@ -139,33 +138,71 @@ def mandelbrotZoomTorchV2(x_zoom_limit, y_zoom_limit, device, x_start_limit = [-
     
 #%%
 
-
-
-def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True, tensor_type = torch.cfloat, cmap = 'hot'):
+def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = [-1, 1], y_limit = [-1j, 1j], scaled_output = False, print_var = True, cmap = 'hot'):
+    tensor_type = torch.cfloat
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # Mouse callback function and related variables
     ix, iy = 0, 0
     def setCoordinate(event, x, y, flags, param):
         nonlocal ix, iy
         ix, iy = x, y
     
-    cv2.namedWindow('Fractal')
+    cv2.namedWindow('Fractal', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Fractal', setCoordinate)
-        
+    
     real_c = np.linspace(x_limit[0], x_limit[1], w)
     imag_c = np.linspace(y_limit[0], y_limit[1], h)
+    angle = 0
     
-    while(True):
-        fix_c = complex(real_c[ix], imag_c[iy])
-        img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type, fix_c = fix_c)
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # Fractals related variable
+    x_cor = torch.linspace(x_limit[0], x_limit[1], w, dtype = tensor_type)
+    y_cor = torch.linspace(y_limit[0], y_limit[1], h, dtype = tensor_type)
+    
+    x_len = len(x_cor)
+    y_len = len(y_cor)
+    output = torch.zeros((x_len,y_len)).to(device)
+    z_start = torch.zeros((x_len, y_len), dtype = tensor_type).to(device)
+    z = torch.zeros((x_len, y_len), dtype = tensor_type).to(device)
+    c = torch.zeros((x_len, y_len), dtype = tensor_type).to(device)
+    threshold = 4
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    
+    with torch.no_grad():
         
-        plt.imsave("tmp.png", img, cmap = cmap)
-        img_plot = cv2.imread("tmp.png")
+        for i in range(x_len):
+            z_start[i] = x_cor[i] + y_cor
         
-        cv2.imshow("Fractal", img_plot)
+        while(True):
+            fix_c = complex(real_c[ix], imag_c[iy])
+            # fix_c = complex(float(np.sin(angle)), float(np.cos(angle)))
+            # angle += 0.05
+            
+            # img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type, fix_c = fix_c)
+            
+            for k in range(iterations):
+                if(k == 0):
+                    z = (z_start * z_start) + fix_c
+                else:
+                    if(scaled_output): 
+                        tmp_index = torch.abs(z) < threshold
+                        z[tmp_index] = (z[tmp_index] * z[tmp_index]) + fix_c
+                    else:
+                        z = (z * z) + fix_c
+                
+                if(scaled_output): output[torch.abs(z) < threshold] = output[torch.abs(z) < threshold] * torch.abs(z[torch.abs(z) < threshold])
+                output[torch.abs(z) < threshold] += 1
+            
+            plt.imsave("tmp.png", output.T.cpu(), cmap = cmap)
+            img_plot = cv2.imread("tmp.png")
+            cv2.imshow("Fractal", img_plot)
+            output[:] = 0
+            
+            if cv2.waitKey(1) == ord('q'):
+                cv2.destroyAllWindows()
+                break
         
-        
-        if cv2.waitKey(1) == ord('q'):
-            cv2.destroyAllWindows()
-            break
-        
-    return img
+    return output.T.cpu().numpy(), z.T.cpu().numpy(), z_start.T.cpu().numpy()
         
