@@ -150,7 +150,7 @@ w = 1280
 h = 720
 iterations = 50
 scaled_output = False
-cmap = 'twilight_shifted'
+cmap = 'Blues_r'
 
 # img = mandelbrotTorch(w, h, iterations, device = torch.device("cuda"), x_limit = x_limit, y_limit = y_limit, print_var = False,  scaled_output = scaled_output, tensor_type = tensor_type)
 # showMandlbrot(img.T, x_limit, y_limit, w, h, cmap = 'hot')
