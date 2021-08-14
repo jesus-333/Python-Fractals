@@ -146,7 +146,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 x_limit = [-1, 1]
 y_limit = [-1j, 1j]
-w = 1280
+w = 1024
 h = 720
 iterations = 50
 scaled_output = False

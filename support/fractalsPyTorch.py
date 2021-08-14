@@ -157,16 +157,18 @@ def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = 
     
     ix, iy = 0, 0
     angle = 0
+    angle_perturbation = 0
     radius = 1
     scale_factor = 0.1
-    use_mouse_position = True
+    fix_c_change_modality = 0
     
     real_c = np.linspace(x_limit[0], x_limit[1], w)
     imag_c = np.linspace(y_limit[0], y_limit[1], h)
     
     def setCoordinate(event, x, y, flags, param):
-        nonlocal ix, iy, real_c, imag_c, z_start, x_limit, y_limit, use_mouse_position, angle, radius
+        nonlocal ix, iy, real_c, imag_c, z_start, x_limit, y_limit, fix_c_change_modality, angle, radius
         ix, iy = x, y
+        
         # Mouse wheel handling (use to zoom)   
         if(event == 10):   
             x_limit[0] = x_limit[0] + np.sign(flags) * scale_factor * x_limit[0] * -1
@@ -184,9 +186,18 @@ def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = 
         
         # Mouse click handling (switch between using mouse position for c or change it while time pass)
         if event == cv2.EVENT_LBUTTONDOWN: 
-            use_mouse_position = not use_mouse_position
-            angle = np.angle(real_c[x] + imag_c[y])
-            radius = abs(real_c[x] + imag_c[y])
+            if(fix_c_change_modality == 0): # From use of the mouse position to circle dynamical change
+                # Transform mouse position in complex coordinate
+                angle = np.angle(real_c[x] + imag_c[y])
+                radius = abs(real_c[x] + imag_c[y])
+                
+                fix_c_change_modality = 1
+            elif(fix_c_change_modality == 1): # From circle dynamical change to spiral dynamical change
+                fix_c_change_modality = 2
+            elif(fix_c_change_modality == 2): # From spiral dynamical change to circle sinusoidal change
+                fix_c_change_modality = 3
+            elif(fix_c_change_modality == 3): # From spiral dynamical change to use of the mouse position
+                fix_c_change_modality = 0
     
     cv2.namedWindow('Fractal', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Fractal', setCoordinate)
@@ -210,12 +221,21 @@ def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = 
         for i in range(w): z_start[i] = x_cor[i] + y_cor
         
         while(True):         
-            if(use_mouse_position):
+            if(fix_c_change_modality == 0): # Mouse position
                 fix_c = real_c[ix] + imag_c[iy]
-            else:
+            elif(fix_c_change_modality == 1): # Simple circle change
                 fix_c = complex(radius * float(np.cos(angle)), radius * float(np.sin(angle)))
-                angle += 0.05
-            
+                angle += 0.02
+            elif(fix_c_change_modality == 2): # Spyral circle change
+                fix_c = complex(radius * float(np.cos(angle)), radius * float(np.sin(angle)))
+                angle += 0.02
+                if(radius > 1): radius -= 0.05
+                if(radius < -1): radius += 0.05
+            elif(fix_c_change_modality == 3): # Sinusoidal circle change
+                fix_c = complex(radius * float(np.cos(angle)), radius * float(np.sin(angle))) * float(np.sin(angle_perturbation))
+                angle += 0.02
+                angle_perturbation += 0.07
+                
             # Evaluate fractal
             for k in range(iterations):
                 if(k == 0):
@@ -232,6 +252,7 @@ def evolvingFractal(w, h, iterations, device = torch.device("cuda"),  x_limit = 
             
             # Show image
             plt.imsave("tmp.png", output.T.cpu(), cmap = cmap)
+            # plt.imsave("tmp.png", torch.abs(z).T.cpu(), cmap = cmap)
             cv2.imshow("Fractal", cv2.imread("tmp.png"))
             
             # Exit when q is pressed
