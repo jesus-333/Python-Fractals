@@ -3,3 +3,5 @@ img_zoom/
 *.avi
 *.pyc
 tmp.png
+*.png
+img_video/
